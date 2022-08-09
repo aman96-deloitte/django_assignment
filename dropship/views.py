@@ -130,6 +130,18 @@ class ProjectIssue(APIView):
         serializer = IssueSerializer(issue, many=True)
         return JsonResponse(serializer.data, safe=False)
 
+    def post(self, request, id):
+        serializer = IssueSerializer(data=request.data)
+        if serializer.is_valid():
+            print(serializer)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({
+                "message":"failed"
+            })
+
+
 
 
 class LoginView(APIView):
