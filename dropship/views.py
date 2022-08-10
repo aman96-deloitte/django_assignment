@@ -13,14 +13,26 @@ from rest_framework.decorators import api_view
 
 
 
+def authenticate(request):
+    token = request.COOKIES.get('jwt')
+    if not token:
+        raise AuthenticationFailed('unauthenticated')
+    try:
+        payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        raise AuthenticationFailed('unauthenticated')
+
+
 # project APIs
 class ProjectList(APIView):
     def get(self,request):
+        authenticate(request)
         project = Project.objects.all()
         serializer = ProjectSerializer(project, many=True)
         return JsonResponse(serializer.data, safe=False)
 
     def post(self,request):
+        authenticate(request)
         serializer = ProjectSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -33,6 +45,7 @@ class ProjectList(APIView):
 
 class ProjectView(APIView):
     def get(self, request, id):
+        authenticate(request)
         try:
             project = Project.objects.get(pk=id)
         except Project.DoesNotExcist:
@@ -42,6 +55,7 @@ class ProjectView(APIView):
         return Response(serializer.data)
 
     def put(self,request,id):
+        authenticate(request)
         try:
             project = Project.objects.get(pk=id)
         except Project.DoesNotExcist:
@@ -53,6 +67,7 @@ class ProjectView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self,request,id):
+        authenticate(request)
         try:
             project = Project.objects.get(pk=id)
         except Project.DoesNotExcist:
@@ -70,11 +85,13 @@ class ProjectView(APIView):
 
 class IssueList(APIView):
     def get(self,request):
+        authenticate(request)
         issue = Issue.objects.all()
         serializer = IssueSerializer(issue, many=True)
         return JsonResponse(serializer.data, safe=False)
 
     def post(self,request):
+        authenticate(request)
         serializer = IssueSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -87,6 +104,7 @@ class IssueList(APIView):
 
 class IssueView(APIView):
     def get(self, request, id):
+        authenticate(request)
         try:
             issue = Issue.objects.get(pk=id)
         except Issue.DoesNotExcist:
@@ -96,6 +114,7 @@ class IssueView(APIView):
         return Response(serializer.data)
 
     def put(self,request,id):
+        authenticate(request)
         try:
             issue = Issue.objects.get(pk=id)
         except Issue.DoesNotExcist:
@@ -107,6 +126,7 @@ class IssueView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self,request,id):
+        authenticate(request)
         try:
             issue = Issue.objects.get(pk=id)
         except Issue.DoesNotExcist:
@@ -125,12 +145,14 @@ class IssueView(APIView):
 
 class ProjectIssue(APIView):
     def get(self, request, id):
+        authenticate(request)
         project = Project.objects.get(pk=id)
         issue = Issue.objects.filter(project=project)
         serializer = IssueSerializer(issue, many=True)
         return JsonResponse(serializer.data, safe=False)
 
     def post(self, request, id):
+        authenticate(request)
         serializer = IssueSerializer(data=request.data)
         if serializer.is_valid():
             print(serializer)
